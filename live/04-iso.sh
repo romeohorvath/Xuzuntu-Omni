@@ -11,7 +11,7 @@ mkdir -p "$OUT_DIR"
 rm -f "$OUT_DIR/$ISO_NAME"
 
 log "Live: creating ISO ($ISO_NAME)"
-grub-mkrescue -o "$OUT_DIR/$ISO_NAME" "$STAGE" -- -volid "XUZUNTU"
+grub-mkrescue -o "$OUT_DIR/$ISO_NAME" "$STAGE" -- -volid "XUZUNTU" -allow-limited-size
 
 ls -lh "$OUT_DIR/$ISO_NAME"
 sha256sum "$OUT_DIR/$ISO_NAME"
