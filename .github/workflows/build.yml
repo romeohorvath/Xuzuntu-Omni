@@ -35,11 +35,14 @@ jobs:
           echo "    (full session inventory)"
           unsquashfs -l /tmp/iso-chk/filesystem.squashfs 2>/dev/null | grep -E 'usr/share/(x|wayland-)sessions/.+\.desktop' | sed 's/^/      /'
           echo "    (required desktop environments)"
-          for de in gnome plasma xfce lxqt cinnamon mate budgie-desktop i3 openbox fluxbox icewm awesome xmonad enlightenment sway dwm; do
-            if unsquashfs -l /tmp/iso-chk/filesystem.squashfs 2>/dev/null | grep -qE "usr/share/(x|wayland-)sessions/$de.desktop"; then
-              echo "  $de: OK"
+          # Use the actual .desktop filenames that exist in the Ubuntu Noble packages.
+          for spec in             "gnome:ubuntu" "gnome:ubuntu-xorg" "plasma:plasma" "xfce:xfce"             "lxqt:lxqt" "cinnamon:cinnamon" "mate:mate" "budgie-desktop:budgie-desktop"             "i3:i3" "openbox:openbox" "fluxbox:fluxbox" "icewm:icewm-session"             "awesome:awesome" "xmonad:xmonad" "enlightenment:enlightenment"             "sway:sway" "dwm:dwm"; do
+            name="${spec%%:*}"
+            file="${spec##*:}"
+            if unsquashfs -l /tmp/iso-chk/filesystem.squashfs 2>/dev/null | grep -qE "usr/share/(x|wayland-)sessions/$file.desktop"; then
+              echo "  $name ($file.desktop): OK"
             else
-              echo "  $de: MISSING"
+              echo "  $name ($file.desktop): MISSING"
               exit 1
             fi
           done
