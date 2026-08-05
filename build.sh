@@ -1,68 +1,91 @@
 #!/bin/bash
+# Xuzuntu Omni — valódi, Ubuntu-alapú live disztribúció építő.
+# Használat: sudo ./build.sh [opciók]
+set -euo pipefail
+cd "$(dirname "$0")"
 
-# Build script for enhancing Xuzuntu Omni
+usage() {
+    cat <<'HELP'
+Használat: sudo ./build.sh [opciók]
 
-# Enable error handling
-set -e
-
-# Function to setup persistent storage
-take_persistent_storage() {
-    echo "Setting up persistent storage..."
-    # Logic for persistent storage goes here
+Opciók:
+  --arch=amd64|arm64      Cél architektúra (alapértelmezés: gazdagép architektúrája)
+  --suite=noble           Ubuntu bázis kiadás
+  --desktop=xfce|gnome|kde|none
+                          Asztali környezet (alapértelmezés: xfce)
+  --modules=a,b,c         Modulok listája (lásd modules/), üres = nincs
+  --minimal               Gyors CLI build: modulok nélkül, desktop nélkül
+  --out=DIR               Kimeneti könyvtár (alapértelmezés: ./out)
+  --work=DIR              Munkakönyvtár (alapértelmezés: ./work)
+  --clean                 Törli a work/ könyvtárat és újraépít
+  --skip-base             Újrahasználja a meglévő rootfs-t (gyors iteráció)
+  --skip-iso              Squashfs után megáll (nem készít ISO-t)
+HELP
 }
 
-# Function for cloud integration
-take_cloud_integration() {
-    echo "Integrating with cloud services..."
-    # Logic for cloud integration goes here
-}
+# --- Argumentumok ---
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --arch=*)      export ARCH="${1#*=}" ;;
+        --suite=*)     export SUITE="${1#*=}" ;;
+        --desktop=*)   export DESKTOP="${1#*=}" ;;
+        --modules=*)   export MODULES="${1#*=}" ;;
+        --minimal)     export MODULES="" DESKTOP=none ;;
+        --out=*)       export OUT_DIR="${1#*=}" ;;
+        --work=*)      export WORK_DIR="${1#*=}" ;;
+        --clean)       CLEAN=1 ;;
+        --skip-base)   SKIP_BASE=1 ;;
+        --skip-iso)    SKIP_ISO=1 ;;
+        -h|--help)     usage; exit 0 ;;
+        *) echo "Ismeretlen opció: $1" >&2; usage; exit 1 ;;
+    esac
+    shift
+done
 
-# Function for AI/ML tools integration
-take_ai_ml_tools() {
-    echo "Integrating AI/ML tools..."
-    # Logic for AI/ML integration goes here
-}
+source config/xuzuntu.conf
+source scripts/common.sh
+require_root
 
-# Function for gaming support
-take_gaming_support() {
-    echo "Setting up gaming support..."
-    # Logic for gaming support goes here
-}
+log "=== Xuzuntu Omni $DISTRO_VERSION build ==="
+log "arch=$ARCH suite=$SUITE desktop=$DESKTOP"
+log "modules=${MODULES:-<nincs>}"
+log "work=$WORK_DIR out=$OUT_DIR"
 
-# Function for wireless security tools
-take_wireless_security_tools() {
-    echo "Integrating wireless security tools..."
-    # Logic for wireless security tools goes here
-}
+if [ -n "${CLEAN:-}" ] && [ -d "$WORK_DIR" ]; then
+    rm -rf "$WORK_DIR"
+fi
+mkdir -p "$WORK_DIR" "$OUT_DIR"
 
-# Function for web UI configuration
-take_web_ui_configuration() {
-    echo "Configuring web UI..."
-    # Logic for web UI configuration goes here
-}
+# 1) Base rendszer
+if [ -n "${SKIP_BASE:-}" ] && [ -d "$ROOTFS" ]; then
+    log "base kihagyva (--skip-base)"
+else
+    bash base/01-debootstrap.sh
+fi
 
-# Function for modular desktop environment selection
-take_modular_desktop_selection() {
-    echo "Selecting modular desktop environments..."
-    # Logic for desktop environment selection goes here
-}
+# 1.5) apt listák a modulokhoz
+log "apt listák frissítése (chroot)"
+chroot_exec apt-get update -qq
 
-# Main script execution
+# 2) Modulok
+for f in modules/*.sh; do
+    name="$(basename "$f" .sh | sed 's/^[0-9]*-//')"
+    case ",${MODULES}," in
+        *",$name,"*) bash "$f" ;;
+    esac
+done
 
-# Call functions in appropriate order
+# 2.5) Mindig finalize (os-release, felhasználó, tisztítás)
+bash modules/99-finalize.sh
 
-take_persistent_storage
+# 3) Live rendszer
+bash live/01-kernel.sh
+bash live/02-squashfs.sh
+bash live/03-bootfiles.sh
+if [ -z "${SKIP_ISO:-}" ]; then
+    bash live/04-iso.sh
+else
+    log "ISO kihagyva (--skip-iso)"
+fi
 
-take_cloud_integration
-
-take_ai_ml_tools
-
-take_gaming_support
-
-take_wireless_security_tools
-
-take_web_ui_configuration
-
-take_modular_desktop_selection
-
-echo "Build completed successfully!"
+log "=== Build befejezve ==="

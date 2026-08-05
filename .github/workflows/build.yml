@@ -1,0 +1,75 @@
+name: Xuzuntu Omni build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build eszközök telepítése
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin
+
+      - name: Valódi ISO build (amd64)
+        run: |
+          sudo -E ./build.sh --arch=amd64 --out="$PWD/out"
+
+      - name: ISO ellenőrzés
+        run: |
+          ISO="$(ls out/*.iso)"
+          ls -lh "$ISO"
+          echo "--- El Torito / UEFI ---"
+          xorriso -indev "$ISO" -report_el_torito 2>&1 | head -12
+          echo "--- grub.cfg ---"
+          xorriso -indev "$ISO" -find /boot/grub -name grub.cfg 2>&1 | head -5
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xuzuntu-omni-amd64-iso
+          path: out/*.iso
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: build-iso
+    continue-on-error: true
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: xuzuntu-omni-amd64-iso
+          path: iso
+
+      - name: QEMU boot teszt (kozvetlen kernel boot)
+        run: |
+          sudo apt-get install -y -qq qemu-system-x86 xorriso
+          cd iso
+          ISO="$(ls *.iso)"
+          mkdir boot
+          xorriso -osirrox on -indev "$ISO" -extract /live/vmlinuz boot/vmlinuz -extract /live/initrd.img boot/initrd.img >/dev/null 2>&1
+          timeout 1500 qemu-system-x86_64 -m 2048 -smp 2 -net none \
+            -cdrom "$ISO" -kernel boot/vmlinuz -initrd boot/initrd.img \
+            -append "boot=live console=ttyS0 quiet" \
+            -nographic -no-reboot > boot.log 2>&1 &
+          QPID=$!
+          for i in $(seq 1 300); do
+            if grep -q "login:" boot.log 2>/dev/null; then
+              echo "BOOT OK — login prompt elerve"
+              kill $QPID 2>/dev/null || true
+              exit 0
+            fi
+            if ! kill -0 $QPID 2>/dev/null; then
+              echo "QEMU ido elott leallt"
+              tail -30 boot.log
+              exit 1
+            fi
+            sleep 5
+          done
+          echo "BOOT TIMEOUT"
+          tail -30 boot.log
+          exit 1
+

@@ -1,152 +1,87 @@
 # Xuzuntu Omni
 
-## Overview
+**Xuzuntu Omni** egy valódi, Ubuntu-alapú Linux disztribúció: a build rendszer valódi csomagokból (debootstrap + Ubuntu archivum) épít egy bootolható live ISO-t — nem szimuláció.
 
-Xuzuntu Omni is a modular Linux-based meta-system architecture designed to unify multiple Linux distribution concepts, desktop environments, and system tooling into a single extensible framework. The project focuses on modularity, scalability, and cross-environment compatibility rather than being a traditional single-purpose operating system.
+## Mi ez valójában?
 
-This repository represents the core structural and orchestration layer for a future Linux ecosystem that can integrate multiple system components in a unified workflow.
+- **Valódi bázis:** Ubuntu 24.04 LTS (Noble) rendszertöltés `debootstrap`-tal, a hivatalos Ubuntu mirrorokról.
+- **Valódi live rendszer:** kernel + initramfs (`live-boot`, `live-config-systemd`), a teljes rootfs squashfs-ban, GRUB bootolással.
+- **Valódi ISO:** `grub-mkrescue` — amd64-en BIOS+UEFI hibrid, arm64-en UEFI ISO.
+- **Valódi modulok:** az „Omni" rétegek nem szövegek, hanem ténylegesen telepített csomagok + konfigurációk.
+- **Valódi CI:** GitHub Actions építi az ISO-t minden push után, QEMU boot teszttel.
 
----
+## Építés helyben
 
-## Core Architecture
+```bash
+sudo apt-get install -y debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin
+sudo ./build.sh --arch=amd64
+```
 
-### 1. Modular System Layer
+Az eredmény: `out/xuzuntu-omni-1.0-amd64.iso`
 
-The system is designed around independent functional modules:
+### Opciók
 
-- Persistent Storage Layer
-- Cloud Integration Layer
-- AI/ML Integration Layer
-- Gaming Optimization Layer
-- Security & Network Analysis Layer
-- Web UI Management Layer
-- Desktop Environment Abstraction Layer
+| Opció | Leírás | Alapértelmezés |
+|---|---|---|
+| `--arch=amd64\|arm64` | Cél architektúra | gazdagép architektúrája |
+| `--suite=noble` | Ubuntu bázis kiadás | `noble` |
+| `--desktop=xfce\|gnome\|kde\|none` | Asztali környezet | `xfce` |
+| `--modules=storage,cloud,...` | Modulok (lásd `modules/`) | mind |
+| `--minimal` | CLI-only, gyors build | — |
+| `--clean` | `work/` törlése és teljes újraépítés | — |
+| `--skip-base` | Meglévő rootfs újrahasználata | — |
+| `--skip-iso` | Squashfs után megáll | — |
 
-Each module operates independently but follows a unified configuration and execution pattern.
+## Modulok (valós csomagok)
 
----
+| Modul | Mit telepít valójában |
+|---|---|
+| `storage` | `btrfs-progs`, `snapper` (btrfs snapshot politika), `zram-tools` (zstd tömörített RAM swap) |
+| `cloud` | `rclone`, `sshfs`, `rsync`, `curl`, `wget` |
+| `ai-ml` | `python3-pip/venv`, `numpy`, `pandas`, `scikit-learn` + `omni-ai` venv helper |
+| `gaming` | Mesa/Vulkan driverek, `gamemode`, `mangohud`, `lutris`, `steam-installer`, `gamescope` |
+| `network-security` | `nmap`, `wireshark`, `aircrack-ng`, `tcpdump`, `firewalld`, `openvpn`, `wireguard-tools`, `ufw` |
+| `webui` | Cockpit rendszerkonzol (`cockpit`, `cockpit-storaged`, `cockpit-packagekit`, `cockpit-networkmanager`) |
+| `desktop` | `xubuntu-desktop` / `ubuntu-desktop-minimal` / KDE Plasma a `DESKTOP` választás szerint |
 
-### 2. Build System
+Az architektúrán nem elérhető csomagokat a build automatikusan kihagyja (pl. `steam-installer` arm64-en).
 
-The build system is implemented as a Bash-based orchestration layer that executes sequential system preparation functions:
+## Bootolás
 
-- System capability initialization
-- Environment configuration
-- Feature module activation
-- Output validation
+1. Írd az ISO-t USB-re: `sudo dd if=xuzuntu-omni-1.0-amd64.iso of=/dev/sdX bs=4M status=progress`
+2. Bootolj róla (UEFI vagy Legacy BIOS — amd64-en mindkettő).
+3. Live bejelentkezés: felhasználó `xuzuntu`, jelszó `xuzuntu` (root is `xuzuntu`).
+4. Hálózat: NetworkManager automatikusan indul; `cockpit` elérhető `http://<gép>:9090` címen.
 
-The build pipeline is designed to be deterministic and reproducible across environments.
+> A jelszavak fejlesztői/live buildhez valók — telepítés után azonnal változtasd meg.
 
----
+## CI
 
-### 3. Target Environment
+A `.github/workflows/build.yml` minden `main` push-ra:
 
-Xuzuntu Omni is designed to be compatible with:
+1. valódi amd64 ISO-t épít (`debootstrap` + live + `grub-mkrescue`),
+2. ellenőrzi az ISO struktúrát (`xorriso`),
+3. feltölti artifact-ként,
+4. QEMU-ban boot tesztet futtat (best-effort, a boot log feltöltve).
 
-- Debian-based distributions
-- Arch-based distributions
-- Fedora-based distributions
-- Minimal Linux environments (CLI-only systems)
-- Containerized Linux environments
+## Projektstruktúra
 
----
+```
+build.sh                 # orchestrator
+config/xuzuntu.conf       # build konfiguráció
+scripts/common.sh         # közös segédfüggvények (chroot, apt, mirror)
+base/01-debootstrap.sh    # valódi bázis rendszer
+modules/*.sh              # valódi modulok (csomagok + konfig)
+live/*.sh                 # kernel, squashfs, GRUB, ISO
+.github/workflows/build.yml
+```
 
-### 4. Desktop Environment Abstraction
+## Állapot
 
-The system is intended to support multiple desktop environments:
-
-- GNOME
-- KDE Plasma
-- XFCE
-- LXQt
-- i3 / Tiling window managers
-
-The abstraction layer allows switching environments without modifying core system logic.
-
----
-
-### 5. Networking & Security Layer
-
-Includes experimental tooling for:
-
-- Network analysis
-- Wireless security auditing
-- Firewall abstraction
-- Secure communication channels
-
----
-
-### 6. Cloud Integration Layer
-
-Designed for hybrid local/cloud execution:
-
-- Remote workload execution
-- Cloud storage synchronization
-- API-based system extension
-- Distributed compute support (future)
-
----
-
-### 7. AI/ML Integration Layer
-
-Provides integration hooks for:
-
-- TensorFlow-based workflows
-- PyTorch environments
-- Local inference systems
-- Model deployment pipelines
-
----
-
-### 8. Gaming Optimization Layer
-
-Focuses on system performance tuning for:
-
-- GPU scheduling optimization
-- Low-latency input handling
-- Vulkan / OpenGL support layers
-- Compatibility with modern game engines
-
----
-
-## Build System (Reference)
-
-The system build pipeline is implemented via Bash scripts that orchestrate modular initialization functions:
-
-- persistent storage setup
-- cloud integration setup
-- AI/ML initialization
-- gaming optimization layer
-- security tooling initialization
-- web UI configuration
-- desktop environment selection
-
----
-
-## Design Philosophy
-
-Xuzuntu Omni is built around the following principles:
-
-- Modularity over monolithic design
-- Cross-distribution compatibility
-- Script-based system orchestration
-- Extensibility through layered architecture
-- Minimal dependency on single desktop or vendor ecosystem
-
----
-
-## Future Vision
-
-The long-term goal is to evolve into a unified Linux meta-distribution framework capable of:
-
-- dynamically selecting system components
-- supporting hybrid cloud-local execution
-- managing multi-environment desktop systems
-- integrating AI-assisted system configuration
-
----
-
-## Status
-
-Early-stage architecture definition and build system prototyping.
-
+- [x] Valódi debootstrap bázis (amd64 + arm64)
+- [x] Live rendszer (kernel, initramfs, squashfs)
+- [x] Bootolható ISO (BIOS+UEFI / UEFI)
+- [x] Modulok valós csomagokkal
+- [x] CI build + QEMU boot teszt
+- [ ] Telepítő (Calamares) — roadmap
+- [ ] Xuzuntu csomagarchívum / saját repo
