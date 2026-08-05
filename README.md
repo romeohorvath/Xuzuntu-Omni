@@ -1,13 +1,13 @@
 # Xuzuntu Omni
 
-**Xuzuntu Omni** is a real, Ubuntu-based Linux distribution where **the entire Linux universe lives in a single system**: every existing desktop environment and window manager (GNOME, KDE, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Deepin, UKUI, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment and more), every package ecosystem (APT, Flatpak, Snap), and any other distribution (via Distrobox/Podman) — all at once, working immediately after login. Not a choice, everything included.
+**Xuzuntu Omni** is a real, Ubuntu-based Linux distribution where **the entire Linux universe lives in a single system**: every existing desktop environment and window manager in the Ubuntu archive (GNOME, KDE, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, bspwm, herbstluftwm, JWM, fvwm, twm, ratpoison, Weston, Labwc, Wayfire and more), every package ecosystem (APT, Flatpak, Snap), and any other distribution (via Distrobox/Podman) — all at once, working immediately after login. Not a choice, everything included.
 
 ## What this really is
 
 - **Real base:** Ubuntu 24.04 LTS (Noble) bootstrapped with `debootstrap` from the official Ubuntu mirrors.
 - **Real live system:** kernel + initramfs (`live-boot`, `live-config-systemd`), the whole rootfs in a squashfs, GRUB boot.
 - **Real ISO:** `grub-mkrescue` — BIOS+UEFI hybrid on amd64, UEFI on arm64.
-- **Every desktop at once:** all desktop environments and window managers that exist in the Ubuntu archive — GNOME, KDE Plasma, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Deepin, UKUI, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, WindowMaker, bspwm, herbstluftwm, qtile and more — all installed; automatic login (LightDM autologin) puts you straight into the system.
+- **Every desktop at once:** all desktop environments and window managers that exist in the Ubuntu archive — GNOME, KDE Plasma, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, bspwm, herbstluftwm, JWM, fvwm, twm, ratpoison, Weston, Labwc, Wayfire and more — all installed; automatic login (LightDM autologin) puts you straight into the system.
 - **Every distro world:** APT (Debian/Ubuntu) + Flatpak (Flathub) + Snap (Canonical) + Podman/Docker + Distrobox (Arch, Fedora, Alpine... any distro in containers, integrated into the system).
 - **Real modules:** the "Omni" layers are actually installed packages and configuration, not placeholder text.
 - **Real CI:** GitHub Actions builds the ISO on every push and runs a QEMU boot test.
@@ -45,7 +45,7 @@ The GitHub CI builds the same full Omni x86_64 ISO and makes it available as an 
 | `gaming` | Mesa/Vulkan drivers, `gamemode`, `mangohud`, `lutris`, `steam-installer`, `gamescope` |
 | `network-security` | `nmap`, `wireshark`, `aircrack-ng`, `tcpdump`, `firewalld`, `openvpn`, `wireguard-tools`, `ufw` |
 | `webui` | Cockpit system console (`cockpit`, `cockpit-storaged`, `cockpit-packagekit`, `cockpit-networkmanager`) |
-| `desktop` | **Every existing desktop at once** (full `ALL_DESKTOPS`: GNOME, KDE, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Deepin, UKUI, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, WindowMaker, bspwm, herbstluftwm, qtile, ...) + LightDM autologin + universal apps (Firefox, LibreOffice, GIMP, VLC) |
+| `desktop` | **Every existing desktop at once** (full `ALL_DESKTOPS`: GNOME, KDE, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, bspwm, herbstluftwm, JWM, fvwm, twm, ratpoison, Weston, Labwc, Wayfire, ...) + LightDM autologin + universal apps (Firefox, LibreOffice, GIMP, VLC) |
 | `omniverse` | Every distro world: `flatpak` (Flathub), `snapd`, `podman`, `docker.io`, `distrobox` (any distro in containers) + the `omni` command |
 
 Packages unavailable on a given architecture are skipped automatically (e.g. `steam-installer` on arm64).

@@ -11,15 +11,18 @@ install_packages \
     vulkan-tools gamemode mangohud lutris gamescope
 
 # Steam needs the 32-bit (i386) library world — enable the multiarch
-# universe on amd64, then install it as a separate step so a failure here
-# does not break the rest of the build.
-if [ "$ARCH" = "amd64" ] && available steam-installer; then
+# universe on amd64, then install it as a separate step so any failure
+# (mirror flake, missing index, conflict) just skips Steam, not the build.
+if [ "$ARCH" = "amd64" ]; then
     chroot_exec dpkg --add-architecture i386
-    apt_retry update -qq
-    if apt_retry install -y --no-install-recommends -o Dpkg::Options::=--force-confold steam-installer; then
-        log "    steam-installer: OK (i386 multiarch enabled)"
+    if apt_retry update -o Acquire::Retries=5 -qq && available libc6:i386 && available steam-installer; then
+        if apt_retry install -y --no-install-recommends -o Dpkg::Options::=--force-confold steam-installer; then
+            log "    steam-installer: OK (i386 multiarch enabled)"
+        else
+            log "    steam-installer: skipped (i386 dependencies unavailable)"
+        fi
     else
-        log "    steam-installer: skipped (i386 dependencies unavailable)"
+        log "    steam-installer: skipped (i386 index/package unavailable)"
     fi
 else
     log "    steam-installer: skipped (not available on $ARCH)"

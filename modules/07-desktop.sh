@@ -42,24 +42,21 @@ install_de() {
         lxde)           try_install lxde lxde ;;
         mate)           try_install mate ubuntu-mate-desktop ;;
         budgie)         try_install budgie ubuntu-budgie-desktop ;;
-        cinnamon)       try_install cinnamon ubuntu-cinnamon-desktop ;;
+        cinnamon)       try_install cinnamon cinnamon-desktop-environment ;;
         unity)          try_install unity ubuntu-unity-desktop unity-session ;;
-        deepin)         try_install deepin startdde ;;
-        ukui)           try_install ukui ukui ;;
-        sugar)          try_install sugar sugar ;;
+        sugar)          try_install sugar sugar-session sucrose ;;
         i3)             try_install i3 i3 i3blocks i3status ;;
         sway)           try_install sway sway ;;
-        openbox)        try_install openbox openbox openbox-tools ;;
+        openbox)        try_install openbox openbox ;;
         fluxbox)        try_install fluxbox fluxbox ;;
         icewm)          try_install icewm icewm ;;
         awesome)        try_install awesome awesome ;;
         dwm)            try_install dwm dwm ;;
         xmonad)         try_install xmonad xmonad ;;
         enlightenment)  try_install enlightenment enlightenment ;;
-        windowmaker)    try_install windowmaker windowmaker ;;
+        
         bspwm)          try_install bspwm bspwm ;;
         herbstluftwm)   try_install herbstluftwm herbstluftwm ;;
-        qtile)          try_install qtile qtile ;;
         ratpoison)      try_install ratpoison ratpoison ;;
         twm)            try_install twm twm ;;
         fvwm)           try_install fvwm fvwm ;;
@@ -67,7 +64,6 @@ install_de() {
         pekwm)          try_install pekwm pekwm ;;
         afterstep)      try_install afterstep afterstep ;;
         spectrwm)       try_install spectrwm spectrwm ;;
-        wmii)           try_install wmii wmii ;;
         matchbox)       try_install matchbox matchbox-window-manager ;;
         weston)         try_install weston weston ;;
         labwc)          try_install labwc labwc ;;
@@ -98,11 +94,11 @@ EOF
 }
 # xsessions entries for window managers that do not ship one.
 for spec in \
+    "cinnamon:cinnamon-session" "icewm:icewm-session" \
     "dwm:dwm" "twm:twm" "fvwm:fvwm" "ratpoison:ratpoison" \
-    "bspwm:bspwm" "herbstluftwm:herbstluftwm" "qtile:qtile" \
+    "bspwm:bspwm" "herbstluftwm:herbstluftwm" \
     "jwm:jwm" "pekwm:pekwm" "afterstep:afterstep" \
-    "spectrwm:spectrwm" "wmii:wmii" "matchbox:matchbox-window-manager" \
-    "windowmaker:wmaker"; do
+    "spectrwm:spectrwm" "matchbox:matchbox-window-manager"; do
     id="${spec%%:*}"; bin="${spec##*:}"
     if chroot_exec command -v "$bin" >/dev/null 2>&1; then
         gen_session "$id" "$bin" usr/share/xsessions
