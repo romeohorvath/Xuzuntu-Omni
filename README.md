@@ -17,7 +17,8 @@ sudo apt-get install -y debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-
 sudo ./build.sh --arch=amd64
 ```
 
-Az eredmény: `out/xuzuntu-omni-1.0-amd64.iso`
+Az eredmény: `out/xuzuntu-omni-1.0-amd64.iso` (x86_64, XFCE asztallal).
+A GitHub CI ugyanezt a teljes asztali x86_64 ISO-t építi és artifact/release formájában letölthető.
 
 ### Opciók
 
@@ -55,14 +56,15 @@ Az architektúrán nem elérhető csomagokat a build automatikusan kihagyja (pl.
 
 > A jelszavak fejlesztői/live buildhez valók — telepítés után azonnal változtasd meg.
 
-## CI
+## CI (GitHub Actions)
 
-A `.github/workflows/build.yml` minden `main` push-ra:
+Minden `main` push-ra a CI **valódi asztali x86_64 ISO-t** épít (`--arch=amd64 --desktop=xfce`, minden modullal):
 
-1. valódi amd64 ISO-t épít (`debootstrap` + live + `grub-mkrescue`),
-2. ellenőrzi az ISO struktúrát (`xorriso`),
-3. feltölti artifact-ként,
-4. QEMU-ban boot tesztet futtat (best-effort, a boot log feltöltve).
+1. `debootstrap` + live rendszer + `grub-mkrescue` (BIOS+UEFI hibrid ISO),
+2. ellenőrzi: ISO struktúra (`xorriso`), XFCE/LightDM jelenlét a squashfs-ben,
+3. feltölti artifact-ként (`xuzuntu-omni-desktop-x86_64`),
+4. QEMU-ban boot teszt (login prompt elérése, best-effort),
+5. `v*` tag-eknél GitHub Release-t hoz létre a letölthető ISO-val.
 
 ## Projektstruktúra
 
