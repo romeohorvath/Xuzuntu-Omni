@@ -6,7 +6,15 @@ source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
 log "Module: ai-ml"
-install_packages python3 python3-pip python3-venv python3-numpy python3-pandas python3-scikit-learn
+install_packages python3 python3-pip python3-venv python3-numpy python3-pandas
+
+# scikit-learn is not in the Ubuntu Noble archive, so install it into the
+# system Python from PyPI (real package, not a placeholder).
+if chroot_exec python3 -m pip install --break-system-packages scikit-learn >/dev/null 2>&1; then
+    log "    scikit-learn: installed via pip"
+else
+    log "    scikit-learn: skipped (pip install failed — use: omni-ai install scikit-learn)"
+fi
 
 # Real helper: create the omni AI/ML virtualenv on first run.
 cat > "$ROOTFS/usr/local/sbin/omni-ai" <<'SH'
