@@ -39,7 +39,7 @@ for d in "${DE_LIST[@]}"; do
     install_de "$d"
 done
 
-# X szerver + display manager (lightdm + autologin)
+# X server + display manager (lightdm + autologin)
 install_packages_recommends xserver-xorg lightdm lightdm-gtk-greeter xdg-utils dbus-x11
 
 # Universal apps — every world usable immediately
