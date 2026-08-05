@@ -15,7 +15,7 @@
 ## Build locally
 
 ```bash
-sudo apt-get install -y debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin
+sudo apt-get install -y debootstrap squashfs-tools xorriso mtools grub-pc-bin grub-efi-amd64-bin
 sudo ./build.sh --arch=amd64
 ```
 
