@@ -25,7 +25,7 @@ log "Module: desktop — every desktop world: $DESKTOPS"
 try_install() {
     local name="$1"; shift
     log "    installing: $name ($*)"
-    if chroot_exec apt-get install -y -o Dpkg::Options::=--force-confold "$@"; then
+    if apt_retry install -y -o Dpkg::Options::=--force-confold "$@"; then
         log "      $name: OK"
     else
         log "      $name: SKIPPED (unavailable or conflicting here)"

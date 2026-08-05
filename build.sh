@@ -68,7 +68,7 @@ fi
 # 1.5) Mount /proc /sys /dev for package postinst scripts,
 #      then refresh the apt lists for the modules.
 mount_essential
-chroot_exec apt-get update -qq
+apt_retry update -qq
 
 # 2) Modules
 for f in modules/*.sh; do

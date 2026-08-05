@@ -6,7 +6,7 @@ source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
 log "Live: kernel + live-boot"
-chroot_exec apt-get install -y \
+apt_retry install -y \
     linux-image-generic initramfs-tools \
     live-boot live-config-systemd \
     network-manager openssh-server sudo

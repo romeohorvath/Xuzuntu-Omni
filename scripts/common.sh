@@ -41,6 +41,21 @@ umount_essential() {
     umount "$ROOTFS/dev/pts" "$ROOTFS/dev" "$ROOTFS/sys" "$ROOTFS/proc" >/dev/null 2>&1 || true
 }
 
+# Run apt-get inside the chroot with retries (Ubuntu mirrors occasionally
+# serve a mid-sync index; a quick retry fixes it).
+apt_retry() {
+    local n=0
+    until chroot_exec apt-get "$@"; do
+        n=$((n+1))
+        if [ "$n" -ge 3 ]; then
+            echo "ERROR: apt-get $* failed 3 times" >&2
+            return 1
+        fi
+        log "    apt retry $n/3 after failure: apt-get $*"
+        sleep 5
+    done
+}
+
 # Run a command inside the target root filesystem.
 chroot_exec() {
     chroot "$ROOTFS" /usr/bin/env \
@@ -67,7 +82,7 @@ install_packages_recommends() {
         fi
     done
     if [ "${#avail[@]}" -gt 0 ]; then
-        chroot_exec apt-get install -y -o Dpkg::Options::=--force-confold "${avail[@]}"
+        apt_retry install -y -o Dpkg::Options::=--force-confold "${avail[@]}"
     fi
 }
 
@@ -82,7 +97,7 @@ install_packages() {
         fi
     done
     if [ "${#avail[@]}" -gt 0 ]; then
-        chroot_exec apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-confold "${avail[@]}"
+        apt_retry install -y --no-install-recommends -o Dpkg::Options::=--force-confold "${avail[@]}"
     elif [ $# -gt 0 ]; then
         echo "WARNING: no packages could be installed ($*)" >&2
         echo "         (missing apt lists? run: chroot_exec apt-get update)" >&2

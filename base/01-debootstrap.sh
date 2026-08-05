@@ -28,5 +28,5 @@ deb $(mirror_for_arch "$ARCH") $SUITE-updates main universe restricted multivers
 deb $(mirror_for_arch "$ARCH") $SUITE-security main universe restricted multiverse
 APT_EOF
 
-chroot_exec apt-get update -qq
+apt_retry update -qq
 log "Base system ready: $ROOTFS"
