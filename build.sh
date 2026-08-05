@@ -11,9 +11,9 @@ Usage: sudo ./build.sh [options]
 Options:
   --arch=amd64|arm64      Target architecture (default: host architecture)
   --suite=noble           Ubuntu base release
-  --desktops=gnome,kde,xfce,lxqt,cinnamon,mate,budgie,i3
-                          Desktop environments (all at once),
-                          none = CLI only (default: all)
+  --desktops=all|none|a,b,c
+                          Desktop environments: all = every existing
+                          desktop/window manager (default), none = CLI only
   --modules=a,b,c         Modules (see modules/), empty = none
   --minimal               Fast CLI build: no modules, no desktop
   --out=DIR               Output directory (default: ./out)

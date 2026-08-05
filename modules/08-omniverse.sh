@@ -29,8 +29,15 @@ cat > "$ROOTFS/usr/local/bin/omni" <<'SH'
 # omni — Xuzuntu Omni: the whole Linux universe in one system.
 echo "═ Xuzuntu Omni — the Linux universe in one system ═"
 echo
-echo "Desktop worlds (all installed, available immediately after login):"
+echo "Desktop worlds — every X session, all installed, available immediately:"
 for s in /usr/share/xsessions/*.desktop; do
+    [ -f "$s" ] || continue
+    name="$(basename "$s" .desktop)"
+    desc="$(sed -n 's/^Name=//p' "$s" | head -1)"
+    printf "  • %-16s %s\n" "$name" "$desc"
+done
+echo "Wayland sessions:"
+for s in /usr/share/wayland-sessions/*.desktop; do
     [ -f "$s" ] || continue
     name="$(basename "$s" .desktop)"
     desc="$(sed -n 's/^Name=//p' "$s" | head -1)"

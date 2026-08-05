@@ -17,9 +17,9 @@ jobs:
           sudo apt-get update -qq
           sudo apt-get install -y -qq debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin
 
-      - name: Build real Omni ISO (x86_64, all desktops)
+      - name: Build real Omni ISO (x86_64, every desktop)
         run: |
-          sudo -E ./build.sh --arch=amd64 --desktops=gnome,kde,xfce,lxqt,cinnamon,mate,budgie,i3 --out="$PWD/out"
+          sudo -E ./build.sh --arch=amd64 --desktops=all --out="$PWD/out"
 
       - name: Verify ISO
         run: |
@@ -32,8 +32,11 @@ jobs:
           echo "--- every desktop world in the squashfs ---"
           mkdir -p /tmp/iso-chk
           xorriso -osirrox on -indev "$ISO" -extract /live/filesystem.squashfs /tmp/iso-chk/filesystem.squashfs >/dev/null 2>&1
-          for de in gnome plasma xfce lxqt cinnamon mate budgie-desktop i3; do
-            if unsquashfs -l /tmp/iso-chk/filesystem.squashfs 2>/dev/null | grep -q "usr/share/xsessions/$de.desktop"; then
+          echo "    (full session inventory)"
+          unsquashfs -l /tmp/iso-chk/filesystem.squashfs 2>/dev/null | grep -E 'usr/share/(x|wayland-)sessions/.+\.desktop' | sed 's/^/      /'
+          echo "    (required desktop environments)"
+          for de in gnome plasma xfce lxqt cinnamon mate budgie-desktop i3 openbox fluxbox icewm awesome xmonad enlightenment sway dwm; do
+            if unsquashfs -l /tmp/iso-chk/filesystem.squashfs 2>/dev/null | grep -qE "usr/share/(x|wayland-)sessions/$de.desktop"; then
               echo "  $de: OK"
             else
               echo "  $de: MISSING"

@@ -1,42 +1,112 @@
 #!/bin/bash
-# Module: desktop — EVERY existing desktop environment in ONE system (Omni).
-# Works immediately after login: LightDM automatic login,
-# every desktop and app available. No choice — everything included.
+# Module: desktop — EVERY existing desktop environment and window manager
+# in the Ubuntu universe, all in ONE system (Omni). No choice, everything
+# included: LightDM automatic login puts you straight into the desktop,
+# every session is already installed.
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-DESKTOPS="${DESKTOPS-gnome,kde,xfce,lxqt,cinnamon,mate,budgie,i3}"
 if [ -z "$DESKTOPS" ] || [ "$DESKTOPS" = "none" ]; then
     log "Module: desktop skipped (DESKTOPS=none)"
     exit 0
 fi
 
-log "Module: desktop — all desktop worlds: $DESKTOPS"
+# "all" expands to the complete desktop universe (config ALL_DESKTOPS).
+if [ "$DESKTOPS" = "all" ]; then
+    DESKTOPS="$ALL_DESKTOPS"
+fi
+
+log "Module: desktop — every desktop world: $DESKTOPS"
+
+# Install one desktop world; a single conflicting/unavailable desktop must
+# not kill the whole build (each attempt is a separate apt transaction).
+try_install() {
+    local name="$1"; shift
+    log "    installing: $name ($*)"
+    if chroot_exec apt-get install -y -o Dpkg::Options::=--force-confold "$@"; then
+        log "      $name: OK"
+    else
+        log "      $name: SKIPPED (unavailable or conflicting here)"
+    fi
+}
 
 install_de() {
-    local name="$1" pkgs=""
+    local name="$1"
     case "$name" in
-        gnome)    pkgs="ubuntu-desktop-minimal" ;;
-        kde)      pkgs="kde-plasma-desktop" ;;
-        xfce)     pkgs="xubuntu-desktop" ;;
-        lxqt)     pkgs="lxqt" ;;
-        cinnamon) pkgs="cinnamon-desktop-environment" ;;
-        mate)     pkgs="mate-desktop-environment" ;;
-        budgie)   pkgs="budgie-desktop" ;;
-        i3)       pkgs="i3 i3blocks" ;;
+        gnome)          try_install gnome ubuntu-desktop-minimal ;;
+        kde)            try_install kde kde-plasma-desktop ;;
+        xfce)           try_install xfce xubuntu-desktop ;;
+        lxqt)           try_install lxqt lubuntu-desktop ;;
+        lxde)           try_install lxde lxde ;;
+        mate)           try_install mate ubuntu-mate-desktop ;;
+        budgie)         try_install budgie ubuntu-budgie-desktop ;;
+        cinnamon)       try_install cinnamon ubuntu-cinnamon-desktop ;;
+        unity)          try_install unity ubuntu-unity-desktop unity-session ;;
+        deepin)         try_install deepin startdde ;;
+        ukui)           try_install ukui ukui ;;
+        sugar)          try_install sugar sugar ;;
+        i3)             try_install i3 i3 i3blocks i3status ;;
+        sway)           try_install sway sway ;;
+        openbox)        try_install openbox openbox openbox-tools ;;
+        fluxbox)        try_install fluxbox fluxbox ;;
+        icewm)          try_install icewm icewm ;;
+        awesome)        try_install awesome awesome ;;
+        dwm)            try_install dwm dwm ;;
+        xmonad)         try_install xmonad xmonad ;;
+        enlightenment)  try_install enlightenment enlightenment ;;
+        windowmaker)    try_install windowmaker windowmaker ;;
+        bspwm)          try_install bspwm bspwm ;;
+        herbstluftwm)   try_install herbstluftwm herbstluftwm ;;
+        qtile)          try_install qtile qtile ;;
+        ratpoison)      try_install ratpoison ratpoison ;;
+        twm)            try_install twm twm ;;
+        fvwm)           try_install fvwm fvwm ;;
+        jwm)            try_install jwm jwm ;;
+        pekwm)          try_install pekwm pekwm ;;
+        afterstep)      try_install afterstep afterstep ;;
+        spectrwm)       try_install spectrwm spectrwm ;;
+        wmii)           try_install wmii wmii ;;
+        matchbox)       try_install matchbox matchbox-window-manager ;;
+        weston)         try_install weston weston ;;
+        labwc)          try_install labwc labwc ;;
+        wayfire)        try_install wayfire wayfire ;;
         *) log "    unknown desktop skipped: $name"; return 0 ;;
     esac
-    log "    installing: $name ($pkgs)"
-    # shellcheck disable=SC2086
-    install_packages_recommends $pkgs
 }
 
 IFS=',' read -ra DE_LIST <<< "$DESKTOPS"
 for d in "${DE_LIST[@]}"; do
     [ -n "$d" ] || continue
     install_de "$d"
+done
+
+# Every window manager gets a login-screen session entry, even those whose
+# upstream ships none (dwm, twm, ...), so the whole universe is selectable.
+mkdir -p "$ROOTFS/usr/share/xsessions" "$ROOTFS/usr/share/wayland-sessions"
+gen_session() {
+    local id="$1" exec_cmd="$2" dir="$3"
+    if [ -f "$ROOTFS/$dir/$id.desktop" ]; then return 0; fi
+    cat > "$ROOTFS/$dir/$id.desktop" <<EOF
+[Desktop Entry]
+Name=$id
+Comment=$id session (Xuzuntu Omni)
+Exec=$exec_cmd
+Type=Application
+EOF
+}
+# xsessions entries for window managers that do not ship one.
+for spec in \
+    "dwm:dwm" "twm:twm" "fvwm:fvwm" "ratpoison:ratpoison" \
+    "bspwm:bspwm" "herbstluftwm:herbstluftwm" "qtile:qtile" \
+    "jwm:jwm" "pekwm:pekwm" "afterstep:afterstep" \
+    "spectrwm:spectrwm" "wmii:wmii" "matchbox:matchbox-window-manager" \
+    "windowmaker:wmaker"; do
+    id="${spec%%:*}"; bin="${spec##*:}"
+    if chroot_exec command -v "$bin" >/dev/null 2>&1; then
+        gen_session "$id" "$bin" usr/share/xsessions
+    fi
 done
 
 # X server + display manager (lightdm + autologin)
@@ -54,7 +124,7 @@ fi
 echo "lightdm shared/default-x-display-manager select lightdm" | chroot_exec debconf-set-selections 2>/dev/null || true
 mkdir -p "$ROOTFS/etc/lightdm"
 DEFAULT_SESSION="xfce"
-for cand in xfce gnome plasma lxqt cinnamon mate budgie-desktop i3; do
+for cand in xfce gnome plasma lxqt cinnamon mate budgie-desktop unity i3 openbox; do
     if [ -f "$ROOTFS/usr/share/xsessions/$cand.desktop" ]; then
         DEFAULT_SESSION="$cand"
         break
@@ -71,4 +141,6 @@ echo "/usr/sbin/lightdm" > "$ROOTFS/etc/X11/default-display-manager"
 chroot_exec systemctl enable lightdm >/dev/null 2>&1 || true
 chroot_exec systemctl disable gdm gdm3 sddm >/dev/null 2>&1 || true
 
-log "Module: desktop ready — autologin: $DEFAULT_SESSION, all desktops installed"
+N_SESSIONS="$(ls "$ROOTFS/usr/share/xsessions/"*.desktop 2>/dev/null | wc -l)"
+N_WAY="$(ls "$ROOTFS/usr/share/wayland-sessions/"*.desktop 2>/dev/null | wc -l)"
+log "Module: desktop ready — $N_SESSIONS X sessions + $N_WAY Wayland sessions, autologin: $DEFAULT_SESSION"

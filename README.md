@@ -1,13 +1,13 @@
 # Xuzuntu Omni
 
-**Xuzuntu Omni** is a real, Ubuntu-based Linux distribution where **the entire Linux universe lives in a single system**: every existing desktop environment, every package ecosystem (APT, Flatpak, Snap), and any other distribution (via Distrobox/Podman) — all at once, working immediately after login. Not a choice, everything included.
+**Xuzuntu Omni** is a real, Ubuntu-based Linux distribution where **the entire Linux universe lives in a single system**: every existing desktop environment and window manager (GNOME, KDE, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Deepin, UKUI, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment and more), every package ecosystem (APT, Flatpak, Snap), and any other distribution (via Distrobox/Podman) — all at once, working immediately after login. Not a choice, everything included.
 
 ## What this really is
 
 - **Real base:** Ubuntu 24.04 LTS (Noble) bootstrapped with `debootstrap` from the official Ubuntu mirrors.
 - **Real live system:** kernel + initramfs (`live-boot`, `live-config-systemd`), the whole rootfs in a squashfs, GRUB boot.
 - **Real ISO:** `grub-mkrescue` — BIOS+UEFI hybrid on amd64, UEFI on arm64.
-- **Every desktop at once:** GNOME, KDE Plasma, XFCE, LXQt, Cinnamon, MATE, Budgie, i3 — all installed; automatic login (LightDM autologin) puts you straight into the system.
+- **Every desktop at once:** all desktop environments and window managers that exist in the Ubuntu archive — GNOME, KDE Plasma, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Deepin, UKUI, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, WindowMaker, bspwm, herbstluftwm, qtile and more — all installed; automatic login (LightDM autologin) puts you straight into the system.
 - **Every distro world:** APT (Debian/Ubuntu) + Flatpak (Flathub) + Snap (Canonical) + Podman/Docker + Distrobox (Arch, Fedora, Alpine... any distro in containers, integrated into the system).
 - **Real modules:** the "Omni" layers are actually installed packages and configuration, not placeholder text.
 - **Real CI:** GitHub Actions builds the ISO on every push and runs a QEMU boot test.
@@ -19,7 +19,7 @@ sudo apt-get install -y debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-
 sudo ./build.sh --arch=amd64
 ```
 
-Result: `out/xuzuntu-omni-1.0-amd64.iso` — with **every desktop environment** (GNOME, KDE, XFCE, LXQt, Cinnamon, MATE, Budgie, i3) and every package world.
+Result: `out/xuzuntu-omni-1.0-amd64.iso` — with **every desktop environment and window manager** (the complete `ALL_DESKTOPS` universe) and every package world.
 The GitHub CI builds the same full Omni x86_64 ISO and makes it available as an artifact/release.
 
 ### Options
@@ -28,7 +28,7 @@ The GitHub CI builds the same full Omni x86_64 ISO and makes it available as an 
 |---|---|---|
 | `--arch=amd64\|arm64` | Target architecture | host architecture |
 | `--suite=noble` | Ubuntu base release | `noble` |
-| `--desktops=gnome,kde,...` | Desktop environments (all at once), `none` = CLI only | all |
+| `--desktops=all\|none\|a,b,c` | Desktop worlds: `all` = every existing desktop/window manager (default), `none` = CLI only | `all` |
 | `--modules=storage,cloud,...` | Modules (see `modules/`) | all |
 | `--minimal` | CLI-only fast build | — |
 | `--clean` | Wipe `work/` and rebuild from scratch | — |
@@ -45,7 +45,7 @@ The GitHub CI builds the same full Omni x86_64 ISO and makes it available as an 
 | `gaming` | Mesa/Vulkan drivers, `gamemode`, `mangohud`, `lutris`, `steam-installer`, `gamescope` |
 | `network-security` | `nmap`, `wireshark`, `aircrack-ng`, `tcpdump`, `firewalld`, `openvpn`, `wireguard-tools`, `ufw` |
 | `webui` | Cockpit system console (`cockpit`, `cockpit-storaged`, `cockpit-packagekit`, `cockpit-networkmanager`) |
-| `desktop` | **All desktops at once**: GNOME, KDE Plasma, XFCE, LXQt, Cinnamon, MATE, Budgie, i3 + LightDM autologin + universal apps (Firefox, LibreOffice, GIMP, VLC) |
+| `desktop` | **Every existing desktop at once** (full `ALL_DESKTOPS`: GNOME, KDE, XFCE, LXQt, LXDE, MATE, Budgie, Cinnamon, Unity, Deepin, UKUI, Sugar, i3, Sway, Openbox, Fluxbox, IceWM, Awesome, dwm, xmonad, Enlightenment, WindowMaker, bspwm, herbstluftwm, qtile, ...) + LightDM autologin + universal apps (Firefox, LibreOffice, GIMP, VLC) |
 | `omniverse` | Every distro world: `flatpak` (Flathub), `snapd`, `podman`, `docker.io`, `distrobox` (any distro in containers) + the `omni` command |
 
 Packages unavailable on a given architecture are skipped automatically (e.g. `steam-installer` on arm64).
@@ -63,7 +63,7 @@ Packages unavailable on a given architecture are skipped automatically (e.g. `st
 
 ## CI (GitHub Actions)
 
-On every push to `main`, the CI builds the **full Omni x86_64 ISO** (`--arch=amd64 --desktops=gnome,kde,xfce,lxqt,cinnamon,mate,budgie,i3`, all modules):
+On every push to `main`, the CI builds the **full Omni x86_64 ISO** (`--arch=amd64 --desktops=all`, all modules — every existing desktop environment):
 
 1. `debootstrap` + live system + `grub-mkrescue` (BIOS+UEFI hybrid ISO),
 2. verifies: ISO structure (`xorriso`), all desktop sessions + LightDM autologin in the squashfs, omniverse tools,
@@ -88,7 +88,7 @@ live/*.sh                # kernel, squashfs, GRUB, ISO
 - [x] Real debootstrap base (amd64 + arm64)
 - [x] Live system (kernel, initramfs, squashfs)
 - [x] Bootable ISO (BIOS+UEFI / UEFI)
-- [x] All desktops in one system (GNOME, KDE, XFCE, LXQt, Cinnamon, MATE, Budgie, i3)
+- [x] Every existing desktop environment + window manager in one system (full `ALL_DESKTOPS`)
 - [x] Every package world (APT, Flatpak, Snap, Podman/Docker, Distrobox)
 - [x] CI build + QEMU boot test
 - [ ] Installer (Calamares) — roadmap
