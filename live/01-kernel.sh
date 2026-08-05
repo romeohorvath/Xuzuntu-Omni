@@ -18,7 +18,7 @@ mkdir -p "$STAGE/live"
 VMLINUZ="$(find "$ROOTFS/boot" -maxdepth 1 -name "vmlinuz-*" 2>/dev/null | sort -V | tail -1 || true)"
 INITRD="$(find "$ROOTFS/boot" -maxdepth 1 -name "initrd.img-*" ! -name "*.dpkg-bak" 2>/dev/null | sort -V | tail -1 || true)"
 if [ -z "$VMLINUZ" ] || [ -z "$INITRD" ]; then
-    echo "Hiba: kernel/initrd nem található a rootfs-ben" >&2
+    echo "Error: kernel/initrd not found in the rootfs" >&2
     exit 1
 fi
 

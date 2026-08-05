@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Live: boot konfiguráció"
+log "Live: boot configuration"
 mkdir -p "$STAGE/boot/grub"
 cat > "$STAGE/boot/grub/grub.cfg" <<GRUB
 set default=0
@@ -23,9 +23,9 @@ menuentry "Xuzuntu Omni $DISTRO_VERSION - Live (nomodeset)" {
     initrd /live/initrd.img
 }
 
-menuentry "Xuzuntu Omni $DISTRO_VERSION - Live (alap, angol)" {
+menuentry "Xuzuntu Omni $DISTRO_VERSION - Live (basic)" {
     linux /live/vmlinuz boot=live components quiet splash locales=en_US.UTF-8 keyboard-layouts=us
     initrd /live/initrd.img
 }
 GRUB
-log "Live: boot konfiguráció kész"
+log "Live: boot configuration ready"

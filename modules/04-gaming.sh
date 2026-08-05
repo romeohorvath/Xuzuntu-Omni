@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: gaming"
+log "Module: gaming"
 install_packages \
     mesa-vulkan-drivers libgl1-mesa-dri libglx-mesa0 \
     vulkan-tools gamemode mangohud lutris steam-installer gamescope
@@ -21,8 +21,8 @@ apply_gpu_optimisations=accept-responsibility
 gpu_device=0
 
 [custom]
-start=notify-send "GameMode aktív" &
-end=notify-send "GameMode vége" &
+start=notify-send "GameMode active" &
+end=notify-send "GameMode stopped" &
 CFG
 
-log "Modul: gaming kész"
+log "Module: gaming ready"

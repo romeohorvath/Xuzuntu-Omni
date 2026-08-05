@@ -5,8 +5,8 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: webui"
+log "Module: webui"
 install_packages cockpit cockpit-storaged cockpit-packagekit cockpit-networkmanager
 chroot_exec systemctl enable cockpit.socket >/dev/null 2>&1 || true
 
-log "Modul: webui kész"
+log "Module: webui ready"

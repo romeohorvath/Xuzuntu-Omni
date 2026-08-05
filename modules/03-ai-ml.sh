@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: ai-ml"
+log "Module: ai-ml"
 install_packages python3 python3-pip python3-venv python3-numpy python3-pandas python3-scikit-learn
 
 # Real helper: create the omni AI/ML virtualenv on first run.
@@ -20,7 +20,7 @@ fi
 source "$VENV/bin/activate"
 pip install --upgrade pip
 if [ $# -eq 0 ]; then
-    echo "omni-ai: aktív venv: $VENV. Futtasd: omni-ai install torch"
+    echo "omni-ai: active venv: $VENV. Usage: omni-ai install torch"
     exit 0
 fi
 case "$1" in
@@ -30,4 +30,4 @@ esac
 SH
 chroot_exec chmod +x /usr/local/sbin/omni-ai
 
-log "Modul: ai-ml kész"
+log "Module: ai-ml ready"

@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: finalize"
+log "Module: finalize"
 
 # Distro identity.
 cat > "$ROOTFS/etc/os-release" <<OSEOF
@@ -36,7 +36,7 @@ ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 HOSTS
 
-# Default user + passwords (live/fejlesztői build; éles rendszeren állítsd át).
+# Default user + passwords (live/development build; change before production use).
 chroot_exec useradd -m -s /bin/bash -G sudo,adm,audio,video,cdrom,plugdev xuzuntu || true
 echo "root:xuzuntu" | chroot_exec chpasswd
 echo "xuzuntu:xuzuntu" | chroot_exec chpasswd
@@ -54,8 +54,8 @@ chroot_exec systemctl enable ssh >/dev/null 2>&1 || true
 # MOTD.
 cat > "$ROOTFS/etc/motd" <<'MOTD'
 Xuzuntu Omni 1.0
-Ez egy valódi, Ubuntu-alapú live disztribúció.
-Bejelentkezés: xuzuntu / xuzuntu
+A real, Ubuntu-based live distribution.
+Login: xuzuntu / xuzuntu
 MOTD
 
 # Machine id (fresh per boot).
@@ -67,4 +67,4 @@ chroot_exec apt-get clean >/dev/null 2>&1 || true
 rm -rf "$ROOTFS"/var/lib/apt/lists/* "$ROOTFS"/var/log/* "$ROOTFS"/tmp/* \
        "$ROOTFS"/var/cache/apt/archives/*.deb 2>/dev/null || true
 
-log "Modul: finalize kész"
+log "Module: finalize ready"

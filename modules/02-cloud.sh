@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: cloud"
+log "Module: cloud"
 install_packages rclone sshfs rsync curl wget
 
 # Sensible defaults for remote sync tooling.
@@ -16,4 +16,4 @@ cat > "$ROOTFS/etc/rclone.conf" <<'CFG'
 type = local
 CFG
 
-log "Modul: cloud kész"
+log "Module: cloud ready"

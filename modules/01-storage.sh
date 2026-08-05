@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: storage"
+log "Module: storage"
 install_packages btrfs-progs snapper zram-tools
 
 # Real zram swap config (compressed RAM swap).
@@ -35,4 +35,4 @@ NUMBER_MIN_AGE="1800"
 NUMBER_LIMIT="10"
 CFG
 
-log "Modul: storage kész"
+log "Module: storage ready"

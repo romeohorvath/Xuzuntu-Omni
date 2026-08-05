@@ -8,9 +8,9 @@ source "$ROOT/scripts/common.sh"
 require_root
 MIRROR="${MIRROR:-$(mirror_for_arch "$ARCH")}"
 
-log "Base rendszer: debootstrap $SUITE ($ARCH) forrás: $MIRROR"
+log "Base system: debootstrap $SUITE ($ARCH) from $MIRROR"
 if [ -f "$ROOTFS/etc/os-release" ]; then
-    log "A rootfs már létezik, debootstrap kihagyva (--clean a teljes újraépítéshez)."
+    log "Rootfs already exists, skipping debootstrap (use --clean to rebuild)."
     exit 0
 fi
 
@@ -21,7 +21,7 @@ debootstrap \
     --include=systemd,udev,systemd-sysv,dbus,locales,ca-certificates,apt-utils,iproute2,iputils-ping,less,vim-tiny,whiptail \
     "$SUITE" "$ROOTFS" "$MIRROR"
 
-log "Források beállítása (main/universe/restricted/multiverse + updates/security)"
+log "Setting up sources (main/universe/restricted/multiverse + updates/security)"
 cat > "$ROOTFS/etc/apt/sources.list" <<APT_EOF
 deb $(mirror_for_arch "$ARCH") $SUITE main universe restricted multiverse
 deb $(mirror_for_arch "$ARCH") $SUITE-updates main universe restricted multiverse
@@ -29,4 +29,4 @@ deb $(mirror_for_arch "$ARCH") $SUITE-security main universe restricted multiver
 APT_EOF
 
 chroot_exec apt-get update -qq
-log "Base rendszer kész: $ROOTFS"
+log "Base system ready: $ROOTFS"

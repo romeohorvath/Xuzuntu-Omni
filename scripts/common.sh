@@ -7,14 +7,14 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 WORK_DIR="${WORK_DIR:-$REPO_ROOT/work}"
 OUT_DIR="${OUT_DIR:-$REPO_ROOT/out}"
 ROOTFS="$WORK_DIR/rootfs"
-# shellcheck disable=SC2034 # live/*.sh használja
+# shellcheck disable=SC2034 # used by live/*.sh
 STAGE="$WORK_DIR/iso"
 
 log() { echo "[$(date +%H:%M:%S)] $*"; }
 
 require_root() {
     if [ "$(id -u)" -ne 0 ]; then
-        echo "Hiba: root jogosultság szükséges (debootstrap/chroot miatt)." >&2
+        echo "Error: root privileges required (debootstrap/chroot)." >&2
         exit 1
     fi
 }
@@ -41,6 +41,21 @@ available() {
     [ -n "$c" ] && [ "$c" != "(none)" ]
 }
 
+# Install packages WITH recommends (desktop metapackages need them).
+install_packages_recommends() {
+    local avail=() p
+    for p in "$@"; do
+        if available "$p"; then
+            avail+=("$p")
+        else
+            log "    skipped (not available on this architecture): $p"
+        fi
+    done
+    if [ "${#avail[@]}" -gt 0 ]; then
+        chroot_exec apt-get install -y -o Dpkg::Options::=--force-confold "${avail[@]}"
+    fi
+}
+
 # Install packages, skipping any that do not exist for this architecture.
 install_packages() {
     local avail=() p
@@ -48,13 +63,13 @@ install_packages() {
         if available "$p"; then
             avail+=("$p")
         else
-            log "    kihagyva (nem elérhető ezen az architektúrán): $p"
+            log "    skipped (not available on this architecture): $p"
         fi
     done
     if [ "${#avail[@]}" -gt 0 ]; then
         chroot_exec apt-get install -y --no-install-recommends -o Dpkg::Options::=--force-confold "${avail[@]}"
     elif [ $# -gt 0 ]; then
-        echo "FIGYELEM: egyetlen csomag sem telepíthető ($*)" >&2
-        echo "         (hiányoznak az apt listák? futtasd: chroot_exec apt-get update)" >&2
+        echo "WARNING: no packages could be installed ($*)" >&2
+        echo "         (missing apt lists? run: chroot_exec apt-get update)" >&2
     fi
 }

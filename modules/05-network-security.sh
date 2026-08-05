@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 source "$ROOT/config/xuzuntu.conf"
 source "$ROOT/scripts/common.sh"
 
-log "Modul: network-security"
+log "Module: network-security"
 install_packages \
     nmap net-tools tcpdump traceroute whois dnsutils iperf3 \
     wireshark aircrack-ng \
@@ -21,4 +21,4 @@ DEFAULT_APPLICATION_POLICY="SKIP"
 MANAGE_BUILTINS=no
 CFG
 
-log "Modul: network-security kész"
+log "Module: network-security ready"

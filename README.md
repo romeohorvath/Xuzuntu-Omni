@@ -1,89 +1,95 @@
 # Xuzuntu Omni
 
-**Xuzuntu Omni** egy valódi, Ubuntu-alapú Linux disztribúció: a build rendszer valódi csomagokból (debootstrap + Ubuntu archivum) épít egy bootolható live ISO-t — nem szimuláció.
+**Xuzuntu Omni** is a real, Ubuntu-based Linux distribution where **the entire Linux universe lives in a single system**: every existing desktop environment, every package ecosystem (APT, Flatpak, Snap), and any other distribution (via Distrobox/Podman) — all at once, working immediately after login. Not a choice, everything included.
 
-## Mi ez valójában?
+## What this really is
 
-- **Valódi bázis:** Ubuntu 24.04 LTS (Noble) rendszertöltés `debootstrap`-tal, a hivatalos Ubuntu mirrorokról.
-- **Valódi live rendszer:** kernel + initramfs (`live-boot`, `live-config-systemd`), a teljes rootfs squashfs-ban, GRUB bootolással.
-- **Valódi ISO:** `grub-mkrescue` — amd64-en BIOS+UEFI hibrid, arm64-en UEFI ISO.
-- **Valódi modulok:** az „Omni" rétegek nem szövegek, hanem ténylegesen telepített csomagok + konfigurációk.
-- **Valódi CI:** GitHub Actions építi az ISO-t minden push után, QEMU boot teszttel.
+- **Real base:** Ubuntu 24.04 LTS (Noble) bootstrapped with `debootstrap` from the official Ubuntu mirrors.
+- **Real live system:** kernel + initramfs (`live-boot`, `live-config-systemd`), the whole rootfs in a squashfs, GRUB boot.
+- **Real ISO:** `grub-mkrescue` — BIOS+UEFI hybrid on amd64, UEFI on arm64.
+- **Every desktop at once:** GNOME, KDE Plasma, XFCE, LXQt, Cinnamon, MATE, Budgie, i3 — all installed; automatic login (LightDM autologin) puts you straight into the system.
+- **Every distro world:** APT (Debian/Ubuntu) + Flatpak (Flathub) + Snap (Canonical) + Podman/Docker + Distrobox (Arch, Fedora, Alpine... any distro in containers, integrated into the system).
+- **Real modules:** the "Omni" layers are actually installed packages and configuration, not placeholder text.
+- **Real CI:** GitHub Actions builds the ISO on every push and runs a QEMU boot test.
 
-## Építés helyben
+## Build locally
 
 ```bash
 sudo apt-get install -y debootstrap squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin
 sudo ./build.sh --arch=amd64
 ```
 
-Az eredmény: `out/xuzuntu-omni-1.0-amd64.iso` (x86_64, XFCE asztallal).
-A GitHub CI ugyanezt a teljes asztali x86_64 ISO-t építi és artifact/release formájában letölthető.
+Result: `out/xuzuntu-omni-1.0-amd64.iso` — with **every desktop environment** (GNOME, KDE, XFCE, LXQt, Cinnamon, MATE, Budgie, i3) and every package world.
+The GitHub CI builds the same full Omni x86_64 ISO and makes it available as an artifact/release.
 
-### Opciók
+### Options
 
-| Opció | Leírás | Alapértelmezés |
+| Option | Description | Default |
 |---|---|---|
-| `--arch=amd64\|arm64` | Cél architektúra | gazdagép architektúrája |
-| `--suite=noble` | Ubuntu bázis kiadás | `noble` |
-| `--desktop=xfce\|gnome\|kde\|none` | Asztali környezet | `xfce` |
-| `--modules=storage,cloud,...` | Modulok (lásd `modules/`) | mind |
-| `--minimal` | CLI-only, gyors build | — |
-| `--clean` | `work/` törlése és teljes újraépítés | — |
-| `--skip-base` | Meglévő rootfs újrahasználata | — |
-| `--skip-iso` | Squashfs után megáll | — |
+| `--arch=amd64\|arm64` | Target architecture | host architecture |
+| `--suite=noble` | Ubuntu base release | `noble` |
+| `--desktops=gnome,kde,...` | Desktop environments (all at once), `none` = CLI only | all |
+| `--modules=storage,cloud,...` | Modules (see `modules/`) | all |
+| `--minimal` | CLI-only fast build | — |
+| `--clean` | Wipe `work/` and rebuild from scratch | — |
+| `--skip-base` | Reuse an existing rootfs | — |
+| `--skip-iso` | Stop after the squashfs | — |
 
-## Modulok (valós csomagok)
+## Modules (real packages)
 
-| Modul | Mit telepít valójában |
+| Module | What it actually installs |
 |---|---|
-| `storage` | `btrfs-progs`, `snapper` (btrfs snapshot politika), `zram-tools` (zstd tömörített RAM swap) |
+| `storage` | `btrfs-progs`, `snapper` (btrfs snapshot policy), `zram-tools` (zstd compressed RAM swap) |
 | `cloud` | `rclone`, `sshfs`, `rsync`, `curl`, `wget` |
 | `ai-ml` | `python3-pip/venv`, `numpy`, `pandas`, `scikit-learn` + `omni-ai` venv helper |
-| `gaming` | Mesa/Vulkan driverek, `gamemode`, `mangohud`, `lutris`, `steam-installer`, `gamescope` |
+| `gaming` | Mesa/Vulkan drivers, `gamemode`, `mangohud`, `lutris`, `steam-installer`, `gamescope` |
 | `network-security` | `nmap`, `wireshark`, `aircrack-ng`, `tcpdump`, `firewalld`, `openvpn`, `wireguard-tools`, `ufw` |
-| `webui` | Cockpit rendszerkonzol (`cockpit`, `cockpit-storaged`, `cockpit-packagekit`, `cockpit-networkmanager`) |
-| `desktop` | `xubuntu-desktop` / `ubuntu-desktop-minimal` / KDE Plasma a `DESKTOP` választás szerint |
+| `webui` | Cockpit system console (`cockpit`, `cockpit-storaged`, `cockpit-packagekit`, `cockpit-networkmanager`) |
+| `desktop` | **All desktops at once**: GNOME, KDE Plasma, XFCE, LXQt, Cinnamon, MATE, Budgie, i3 + LightDM autologin + universal apps (Firefox, LibreOffice, GIMP, VLC) |
+| `omniverse` | Every distro world: `flatpak` (Flathub), `snapd`, `podman`, `docker.io`, `distrobox` (any distro in containers) + the `omni` command |
 
-Az architektúrán nem elérhető csomagokat a build automatikusan kihagyja (pl. `steam-installer` arm64-en).
+Packages unavailable on a given architecture are skipped automatically (e.g. `steam-installer` on arm64).
 
-## Bootolás
+## Boot
 
-1. Írd az ISO-t USB-re: `sudo dd if=xuzuntu-omni-1.0-amd64.iso of=/dev/sdX bs=4M status=progress`
-2. Bootolj róla (UEFI vagy Legacy BIOS — amd64-en mindkettő).
-3. Live bejelentkezés: felhasználó `xuzuntu`, jelszó `xuzuntu` (root is `xuzuntu`).
-4. Hálózat: NetworkManager automatikusan indul; `cockpit` elérhető `http://<gép>:9090` címen.
+1. Write the ISO to USB: `sudo dd if=xuzuntu-omni-1.0-amd64.iso of=/dev/sdX bs=4M status=progress`
+2. Boot from it (UEFI or Legacy BIOS — amd64 supports both).
+3. **Automatic login** as `xuzuntu` — you land directly in the desktop with the whole universe available.
+4. Network: NetworkManager starts automatically; Cockpit is at `http://<host>:9090`.
+5. Run `omni` to see every installed desktop and package world.
+6. Want another desktop? Log out and pick a session — but they are all **already installed** in the same system.
 
-> A jelszavak fejlesztői/live buildhez valók — telepítés után azonnal változtasd meg.
+> The passwords are for development/live builds — change them immediately after installing.
 
 ## CI (GitHub Actions)
 
-Minden `main` push-ra a CI **valódi asztali x86_64 ISO-t** épít (`--arch=amd64 --desktop=xfce`, minden modullal):
+On every push to `main`, the CI builds the **full Omni x86_64 ISO** (`--arch=amd64 --desktops=gnome,kde,xfce,lxqt,cinnamon,mate,budgie,i3`, all modules):
 
-1. `debootstrap` + live rendszer + `grub-mkrescue` (BIOS+UEFI hibrid ISO),
-2. ellenőrzi: ISO struktúra (`xorriso`), XFCE/LightDM jelenlét a squashfs-ben,
-3. feltölti artifact-ként (`xuzuntu-omni-desktop-x86_64`),
-4. QEMU-ban boot teszt (login prompt elérése, best-effort),
-5. `v*` tag-eknél GitHub Release-t hoz létre a letölthető ISO-val.
+1. `debootstrap` + live system + `grub-mkrescue` (BIOS+UEFI hybrid ISO),
+2. verifies: ISO structure (`xorriso`), all desktop sessions + LightDM autologin in the squashfs, omniverse tools,
+3. uploads it as an artifact (`xuzuntu-omni-desktop-x86_64`),
+4. runs a QEMU boot test (reaches the login prompt, best-effort),
+5. on `v*` tags it creates a GitHub Release with the downloadable ISO.
 
-## Projektstruktúra
+## Project layout
 
 ```
 build.sh                 # orchestrator
-config/xuzuntu.conf       # build konfiguráció
-scripts/common.sh         # közös segédfüggvények (chroot, apt, mirror)
-base/01-debootstrap.sh    # valódi bázis rendszer
-modules/*.sh              # valódi modulok (csomagok + konfig)
-live/*.sh                 # kernel, squashfs, GRUB, ISO
+config/xuzuntu.conf      # build configuration
+scripts/common.sh        # shared helpers (chroot, apt, mirror)
+base/01-debootstrap.sh   # real base system
+modules/*.sh             # real modules (packages + config)
+live/*.sh                # kernel, squashfs, GRUB, ISO
 .github/workflows/build.yml
 ```
 
-## Állapot
+## Status
 
-- [x] Valódi debootstrap bázis (amd64 + arm64)
-- [x] Live rendszer (kernel, initramfs, squashfs)
-- [x] Bootolható ISO (BIOS+UEFI / UEFI)
-- [x] Modulok valós csomagokkal
-- [x] CI build + QEMU boot teszt
-- [ ] Telepítő (Calamares) — roadmap
-- [ ] Xuzuntu csomagarchívum / saját repo
+- [x] Real debootstrap base (amd64 + arm64)
+- [x] Live system (kernel, initramfs, squashfs)
+- [x] Bootable ISO (BIOS+UEFI / UEFI)
+- [x] All desktops in one system (GNOME, KDE, XFCE, LXQt, Cinnamon, MATE, Budgie, i3)
+- [x] Every package world (APT, Flatpak, Snap, Podman/Docker, Distrobox)
+- [x] CI build + QEMU boot test
+- [ ] Installer (Calamares) — roadmap
+- [ ] Xuzuntu package archive / own repo
