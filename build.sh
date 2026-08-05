@@ -65,8 +65,9 @@ else
     bash base/01-debootstrap.sh
 fi
 
-# 1.5) apt lists for the modules
-log "Refreshing apt lists (chroot)"
+# 1.5) Mount /proc /sys /dev for package postinst scripts,
+#      then refresh the apt lists for the modules.
+mount_essential
 chroot_exec apt-get update -qq
 
 # 2) Modules
@@ -77,8 +78,10 @@ for f in modules/*.sh; do
     esac
 done
 
-# 2.5) Always finalize (os-release, user, cleanup)
+# 2.5) Always finalize (os-release, user, cleanup), then unmount the
+#      chroot filesystems so the squashfs does not capture them.
 bash modules/99-finalize.sh
+umount_essential
 
 # 3) Live system
 bash live/01-kernel.sh

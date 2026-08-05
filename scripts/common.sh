@@ -26,6 +26,21 @@ mirror_for_arch() {
     esac
 }
 
+# Mount /proc, /sys and /dev into the rootfs so package postinst scripts
+# (e.g. OpenJDK, LibreOffice) work inside the chroot.
+mount_essential() {
+    mkdir -p "$ROOTFS/proc" "$ROOTFS/dev/pts" "$ROOTFS/sys"
+    mount -t proc proc "$ROOTFS/proc" >/dev/null 2>&1 || true
+    mount --bind /sys "$ROOTFS/sys" >/dev/null 2>&1 || true
+    mount --bind /dev "$ROOTFS/dev" >/dev/null 2>&1 || true
+    mount --bind /dev/pts "$ROOTFS/dev/pts" >/dev/null 2>&1 || true
+}
+
+# Unmount before the live image steps so the squashfs stays clean.
+umount_essential() {
+    umount "$ROOTFS/dev/pts" "$ROOTFS/dev" "$ROOTFS/sys" "$ROOTFS/proc" >/dev/null 2>&1 || true
+}
+
 # Run a command inside the target root filesystem.
 chroot_exec() {
     chroot "$ROOTFS" /usr/bin/env \
