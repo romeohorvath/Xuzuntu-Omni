@@ -11,7 +11,19 @@ mkdir -p "$OUT_DIR"
 rm -f "$OUT_DIR/$ISO_NAME"
 
 log "Live: creating ISO ($ISO_NAME)"
-grub-mkrescue -o "$OUT_DIR/$ISO_NAME" "$STAGE" -- -volid "XUZUNTU" -file_size_limit off --
+# Use xorriso directly in mkisofs emulation mode with ISO 9660:1999 (level 3)
+# to support files >4 GiB (the squashfs). grub-mkrescue passes args in native
+# xorriso mode where -file_size_limit off does not take effect in time.
+xorriso -as mkisofs \
+    -iso-level 3 \
+    -volid "XUZUNTU" \
+    -eltorito-boot boot/grub/eltorito.img \
+    -eltorito-catalog boot/grub/boot.cat \
+    -no-emul-boot -boot-load-size 4 -boot-info-table \
+    -eltorito-alt-boot \
+    -e boot/grub/efiboot.img \
+    -no-emul-boot -isohybrid-gpt-basdat \
+    -o "$OUT_DIR/$ISO_NAME" "$STAGE"
 
 ls -lh "$OUT_DIR/$ISO_NAME"
 sha256sum "$OUT_DIR/$ISO_NAME"
