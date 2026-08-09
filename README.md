@@ -93,3 +93,9 @@ live/*.sh                # kernel, squashfs, GRUB, ISO
 - [x] CI build + QEMU boot test
 - [ ] Installer (Calamares) — roadmap
 - [ ] Xuzuntu package archive / own repo
+
+## Contact
+
+- Email: [horvathromeo59@gmail.com](mailto:horvathromeo59@gmail.com)
+- Telegram: [@botbite6](https://t.me/botbite6)
+- Author: [Horváth Rómeó (romeohorvath)](https://github.com/romeohorvath)
